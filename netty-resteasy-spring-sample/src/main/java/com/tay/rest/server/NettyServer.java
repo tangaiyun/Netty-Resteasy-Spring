@@ -1,7 +1,7 @@
 package com.tay.rest.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +11,8 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.netty.channel.ChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,6 @@ import org.springframework.util.Assert;
 
 @Component
 public class NettyServer {
-
 	@Autowired
 	ApplicationContext				ac;
 
@@ -32,17 +33,15 @@ public class NettyServer {
 	private SSLContext sslContext = null;
 	private final int maxRequestSize = 1024 * 1024 * 10;
 	private final ChannelHandler channelHandler = new MyChannelHandler();
-	NettyJaxrsServer	netty;
+	private final IdleStateHandler idleStateHandler = new IdleStateHandler(new HashedWheelTimer(),0,0,600);
+	private final HealthCheckHandler healthCheckHandler = new HealthCheckHandler();
+	NettyJaxrsServer  netty;
 
 	public void start() {
-
 		ResteasyDeployment dp = new ResteasyDeployment();
-
 		Collection<Object> providers = ac.getBeansWithAnnotation(Provider.class).values();
 		Collection<Object> controllers = ac.getBeansWithAnnotation(Controller.class).values();
-
 		Assert.notEmpty(controllers);
-
 		// extract providers
 		if (providers != null) {
 			dp.getProviders().addAll(providers);
@@ -51,7 +50,10 @@ public class NettyServer {
 		dp.getResources().addAll(controllers);
 		Map<String, Object> channelOptions = new HashMap<String, Object>();
 		channelOptions.put("reuseAddress", true);
-		List<ChannelHandler> channelHandlerList = Collections.singletonList(channelHandler);
+		List<ChannelHandler> channelHandlerList = new ArrayList<ChannelHandler>();
+		channelHandlerList.add(channelHandler);
+		channelHandlerList.add(idleStateHandler);
+		channelHandlerList.add(healthCheckHandler);
 		netty = new NettyJaxrsServer();
 		netty.setChannelOptions(channelOptions);
 		netty.setDeployment(dp);
@@ -61,7 +63,7 @@ public class NettyServer {
 		netty.setExecutorThreadCount(executorThreadCount);
 		netty.setMaxRequestSize(maxRequestSize);
 		netty.setSSLContext(sslContext);
-		netty.setKeepAlive(false);
+		netty.setKeepAlive(true);
 		netty.setChannelHandlers(channelHandlerList);
 		netty.setSecurityDomain(null);
 		netty.start();
@@ -79,5 +81,4 @@ public class NettyServer {
 	public int getPort() {
 		return port;
 	}
-
 }

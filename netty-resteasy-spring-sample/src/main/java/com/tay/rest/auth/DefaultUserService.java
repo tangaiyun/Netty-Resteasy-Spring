@@ -76,7 +76,7 @@ public class DefaultUserService implements UserService {
 			return new User("003", "周曦新", "xyz", Role.USER);
 		}
 		else {
-			return null;
+			return new User("008", "猪头", "zhutousan", Role.USER);
 		}
 	}
 }

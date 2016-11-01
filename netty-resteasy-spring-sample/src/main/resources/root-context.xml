@@ -8,5 +8,22 @@
 
 	<context:annotation-config />
 	<context:component-scan base-package="com.tay.rest" />
-
+	<!-- 加载redis配置文件 -->
+    <context:property-placeholder location="classpath:redis.properties"/>
+    <!-- redis连接池的配置 -->
+    <beans:bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+      <beans:property name="maxTotal" value="${redis.maxTotal}"/>
+      <beans:property name="maxIdle" value="${redis.maxIdle}"/>
+      <beans:property name="minIdle" value="${redis.minIdle}"/>
+      <beans:property name="testOnBorrow" value="${redis.testOnBorrow}"/>
+      <beans:property name="testOnReturn" value="${redis.testOnReturn}"/>
+    </beans:bean>
+    
+    <!-- redis的连接池pool，不是必选项：timeout/password  -->
+    <beans:bean id = "jedisPool" class="redis.clients.jedis.JedisPool">
+      <beans:constructor-arg index="0" ref="jedisPoolConfig"/>
+      <beans:constructor-arg index="1" value="${redis.host}"/>
+      <beans:constructor-arg index="2" value="${redis.port}" type="int"/>
+      <beans:constructor-arg index="3" value="${redis.timeout}" type="int"/>
+    </beans:bean>
 </beans:beans>

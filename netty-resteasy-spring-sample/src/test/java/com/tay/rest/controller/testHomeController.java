@@ -28,14 +28,18 @@ import com.tay.rest.server.BizException;
 public class testHomeController {
 
 	@Test
-	public void testHelloworld() {
+	public void testHelloworld() throws InterruptedException {
 		ResteasyClient client = new ResteasyClientBuilder().build();
 		
-		ResteasyWebTarget target = client.target(buildUrl("hello/world"));
+		ResteasyWebTarget target = client.target(buildUrl("hello/world/2345?multi=true"));
 		Response response = target.request().header("UserToken", "").get();
 		Helloworld hw = response.readEntity(Helloworld.class);
 		System.out.println(hw.getMessage());
-		response.close();
+		
+		while(true) {
+			Thread.sleep(1000);
+		}
+//		response.close();
 	}
 	
 	@Test
@@ -133,6 +137,6 @@ public class testHomeController {
 
 	public String buildUrl(String target) {
 		return String.format("http://localhost:%d/%s/%s",
-				8082, "/resteasy", target);
+				8082, "resteasy", target);
 	}
 }

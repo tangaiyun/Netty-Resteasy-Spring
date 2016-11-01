@@ -17,7 +17,7 @@ public class MyChannelHandler extends SimpleChannelHandler {
 
         // Log all channel state changes.
         if (e instanceof ChannelStateEvent) {
-            logger.info("Channel state changed: " + e);
+//            logger.info("Channel state changed: " + e);
         }
 
         super.handleUpstream(ctx, e);
